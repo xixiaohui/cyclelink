@@ -33,165 +33,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import com.xxh.cyclelink.LocationPermissionHelper
 import com.xxh.cyclelink.LocationService
 
-@SuppressLint("MissingPermission")
-@Composable
-fun RideTrackerScreen() {
-    val context = LocalContext.current
-    val mapView = remember { MapView(context) }
-    val trackedPoints = remember { mutableStateListOf<LatLng>() }
 
-    var aMap by remember { mutableStateOf<AMap?>(null) }
-
-    // 初始化地图
-    AndroidView(
-        factory = { mapView },
-        modifier = Modifier.fillMaxSize()
-    ) {
-        aMap = it.map
-        aMap?.uiSettings?.isZoomControlsEnabled = true
-        aMap?.moveCamera(CameraUpdateFactory.zoomTo(17f))
-    }
-
-    // 生命周期绑定
-    DisposableEffect(Unit) {
-        mapView.onCreate(Bundle())
-        mapView.onResume()
-
-        val locationClient = AMapLocationClient(context)
-        val locationOption = AMapLocationClientOption().apply {
-            locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
-            isOnceLocation = false
-            interval = 3000 // 3 秒更新
-        }
-
-        locationClient.setLocationOption(locationOption)
-        locationClient.setLocationListener { location ->
-            if (location.errorCode == 0) {
-                val point = LatLng(location.latitude, location.longitude)
-                trackedPoints.add(point)
-
-                // 移动摄像头跟随
-                aMap?.moveCamera(CameraUpdateFactory.changeLatLng(point))
-
-                // 画 Polyline
-                if (trackedPoints.size > 1) {
-                    aMap?.addPolyline(
-                        PolylineOptions()
-                            .addAll(trackedPoints)
-                            .width(8f)
-                            .color(0xFF2196F3.toInt()) // 蓝色
-                    )
-                }
-            } else {
-                Log.e("LocationError", "${location.errorCode}: ${location.errorInfo}")
-            }
-        }
-
-        locationClient.startLocation()
-
-        onDispose {
-            mapView.onPause()
-            mapView.onDestroy()
-            locationClient.stopLocation()
-            locationClient.onDestroy()
-        }
-    }
-}
-
-@Composable
-fun AMapView(
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    val mapView = remember { MapView(context) }
-
-    AndroidView(
-        modifier = modifier.fillMaxSize(),
-        factory = {
-            mapView.onCreate(null)
-            mapView
-        },
-        update = {
-            val aMap = it.map
-            aMap.uiSettings.isZoomControlsEnabled = false
-
-            // 开启定位蓝点
-            val locationStyle = MyLocationStyle()
-            locationStyle.showMyLocation(true)
-            locationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE)
-            aMap.myLocationStyle = locationStyle
-            aMap.isMyLocationEnabled = true
-        }
-    )
-
-    // 生命周期管理
-    DisposableEffect(Unit) {
-        onDispose {
-            mapView.onDestroy()
-        }
-    }
-}
-
-@Composable
-fun LocationPermissionScreen(
-    onGranted: () -> Unit
-) {
-    val context = LocalContext.current
-    val showDialog = remember { mutableStateOf(false) }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.all { it.value }
-        if (allGranted && LocationPermissionHelper.hasBackgroundPermission(context)) {
-            onGranted()
-        } else {
-            showDialog.value = true
-        }
-    }
-
-    // 启动权限请求（页面加载时）
-    LaunchedEffect(Unit) {
-        if (!LocationPermissionHelper.hasForegroundPermission(context)) {
-            launcher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
-        } else if (!LocationPermissionHelper.hasBackgroundPermission(context)) {
-            // Android 10+ 后台权限单独处理
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                launcher.launch(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION))
-            }
-        } else {
-            onGranted()
-        }
-    }
-
-    // 提示用户手动去设置
-    if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("后台定位权限需要手动开启") },
-            text = {
-                Text("为了记录骑行轨迹，请在系统设置中授予后台定位权限。")
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    LocationPermissionHelper.openAppSettings(context)
-                    showDialog.value = false
-                }) {
-                    Text("去设置")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog.value = false }) {
-                    Text("取消")
-                }
-            }
-        )
-    }
-}
 
 @Composable
 fun AMapViewComposable() {
@@ -404,6 +246,74 @@ fun WithLocationPermission(
     }
 }
 
+
+
+@Composable
+fun RideMapContent() {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val locationService = remember { LocationService(context) }
+    val location by locationService.locationFlow.collectAsState()
+
+    val mapView = remember { MapView(context) }
+    var aMap by remember { mutableStateOf<AMap?>(null) }
+    val trackPoints = remember { mutableStateListOf<LatLng>() }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = object : DefaultLifecycleObserver {
+            override fun onCreate(owner: LifecycleOwner) {
+                mapView.onCreate(Bundle())
+                locationService.start()
+            }
+
+            override fun onResume(owner: LifecycleOwner) = mapView.onResume()
+            override fun onPause(owner: LifecycleOwner) = mapView.onPause()
+            override fun onDestroy(owner: LifecycleOwner) {
+                mapView.onDestroy()
+                locationService.stop()
+                locationService.onDestroy()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(location) {
+        location?.let {
+            val latLng = LatLng(it.latitude, it.longitude)
+            trackPoints.add(latLng)
+            aMap?.clear()
+            aMap?.addPolyline(
+                PolylineOptions()
+                    .addAll(trackPoints)
+                    .width(10f)
+                    .color(Color.BLUE)
+            )
+            aMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
+        }
+    }
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { mapView }
+    ) {
+        aMap = it.map
+        it.map.uiSettings.apply {
+            isZoomControlsEnabled = true
+            isMyLocationButtonEnabled = true
+        }
+        val style = MyLocationStyle().apply {
+            myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE)
+            interval(2000)
+        }
+        it.map.myLocationStyle = style
+        it.map.isMyLocationEnabled = true
+    }
+}
+
+
 @Composable
 fun RideTrackingMapScreen() {
     val context = LocalContext.current
@@ -411,7 +321,7 @@ fun RideTrackingMapScreen() {
 
     WithLocationPermission(
         onGranted = {
-            RideMapScreen()
+            RideMapContent()
         },
         onDenied = {
             showDeniedDialog = true
@@ -441,6 +351,7 @@ fun RideTrackingMapScreen() {
         )
     }
 }
+
 
 
 
