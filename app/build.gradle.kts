@@ -64,7 +64,7 @@ dependencies {
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
+//    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
 
     implementation("com.github.ticofab:android-gpx-parser:2.3.1")
 }

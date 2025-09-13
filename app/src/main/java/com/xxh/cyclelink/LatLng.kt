@@ -4,18 +4,27 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
@@ -45,10 +54,10 @@ fun extractLatLngList(gpx: Gpx): List<LatLng> {
 }
 
 fun parseGpx(context: Context): List<LatLng> {
-    val fileName_1 = "20250622户外骑行.gpx"
-//    val fileName_2 = "4994735.gpx"
+//    val fileName_1 = "20250622户外骑行.gpx"
+    val fileName_2 = "20250907户外骑行.gpx"
 
-    val inputStream = context.assets.open(fileName_1)
+    val inputStream = context.assets.open(fileName_2)
     val parser = GPXParser() // io.ticofab:gpxparser
     val gpx = parser.parse(inputStream)
 
@@ -108,7 +117,10 @@ fun GPXTrackCanvas(gpxPoints: List<LatLng>, modifier: Modifier = Modifier) {
     if (gpxPoints.size < 2) return
 
     BoxWithConstraints(modifier = modifier
-        .padding(10.dp)
+        .padding(40.dp)
+        .fillMaxWidth()
+        .aspectRatio(1.0f)
+
     ) {
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxWidth.toFloat()
@@ -148,6 +160,33 @@ fun GpxViewer() {
     if (trackPoints.isNotEmpty()) {
         GPXTrackCanvas(gpxPoints = trackPoints)
     }
+
 }
 
+@Composable
+fun CaptureComposable() {
+    val context = LocalContext.current
+    val view = LocalView.current
+
+    Column (
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+
+        // 需要截取的部分
+        GpxViewer()
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 截图按钮
+        Button(onClick = {
+            val bitmap = ScreenshotUtil.getTransparentBitmapFromView(view)
+//            ScreenshotUtil.saveBitmapToFile(context, bitmap, "compose_screen3")
+            ScreenshotUtil.saveBitmapToGallery(context, bitmap, "compose_screen3")
+        }) {
+            Text("截取整个Compose界面")
+        }
+    }
+}
 

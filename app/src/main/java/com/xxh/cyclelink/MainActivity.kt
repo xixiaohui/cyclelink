@@ -13,8 +13,6 @@ import androidx.compose.runtime.Composable
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.amap.api.location.AMapLocationClient
-import com.amap.api.maps.MapsInitializer
 
 import com.xxh.cyclelink.ui.theme.CyclelinkTheme
 
@@ -23,29 +21,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 设置高德地图隐私合规
-//        MapsInitializer.updatePrivacyShow(this, true, true)
-//        MapsInitializer.updatePrivacyAgree(this, true)
-//
-//        AMapLocationClient.updatePrivacyShow(this, true, true)
-//        AMapLocationClient.updatePrivacyAgree(this, true)
-//
 
         setContent {
             CyclelinkTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
-                    Column {
-                        Greeting(
-                            name = "Android",
-                            modifier = Modifier.padding(innerPadding)
-                        )
-
-                        GpxViewer()
-                    }
-
-
-                }
+                CaptureComposable()
             }
         }
     }
