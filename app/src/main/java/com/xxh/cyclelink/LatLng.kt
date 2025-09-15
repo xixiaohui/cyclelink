@@ -3,10 +3,10 @@ package com.xxh.cyclelink
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
+
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -201,12 +201,12 @@ fun GPXExtensions(trackDataState: MutableState<TrackData?>, modifier: Modifier =
     trackDataState.value?.let { trackData ->
         RideStats(trackData)
 
-        } ?: run {
-            // 数据未加载时显示加载状态
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("加载中...")
-            }
+    } ?: run {
+        // 数据未加载时显示加载状态
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("加载中...")
         }
+    }
 
 }
 
@@ -218,6 +218,7 @@ fun GPXTrackCanvas(gpxPoints: List<LatLng>, modifier: Modifier = Modifier) {
 
     BoxWithConstraints(
         modifier = modifier
+
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
@@ -307,13 +308,44 @@ fun GpxViewer() {
     }
     if (trackPoints.isNotEmpty()) {
 
-        //运动数据
-        GPXExtensions(trackDataState = trackDataState)
-        //轨迹图
-        GPXTrackCanvas(gpxPoints = trackPoints)
+        Column(
+            modifier = Modifier.padding(7.dp),
+            horizontalAlignment = Alignment.CenterHorizontally // 居中对齐
+        ){
+            //运动数据
+            GPXExtensions(trackDataState = trackDataState)
+            //轨迹图
+            GPXTrackCanvas(gpxPoints = trackPoints)
+
+            //时间 + 圈数
+            GPXTrackTimeAndNumber(trackDataState = trackDataState)
+        }
+
 
 
     }
+
+}
+
+@Composable
+fun GPXTrackTimeAndNumber(trackDataState: MutableState<TrackData?>) {
+
+    Column(
+        modifier = Modifier
+        ,
+        horizontalAlignment = Alignment.CenterHorizontally // 居中对齐
+    ) {
+
+
+        trackDataState.value?.let{trackData ->
+            val value = trackData.trackPoints[0].time.substring(0,10)  + "/23/xi"
+            Text(text = value, color =  Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        }
+
+
+    }
+
+
 
 }
 
@@ -345,7 +377,7 @@ fun CaptureComposable() {
 
         Button(onClick = {
             val bitmap = ScreenshotUtil.getTransparentBitmapFromView(gpxComposeView)
-            ScreenshotUtil.saveBitmapToGallery(context, bitmap, "compose_only_gpx1")
+            ScreenshotUtil.saveBitmapToGallery(context, bitmap, "compose_only_gpx2")
         }) {
             Text("只截取 GpxViewer")
         }
