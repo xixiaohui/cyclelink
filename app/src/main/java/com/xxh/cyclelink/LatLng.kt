@@ -3,24 +3,21 @@ package com.xxh.cyclelink
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.view.View
+import android.os.Build
+import androidx.annotation.RequiresApi
+
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,14 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -49,7 +41,7 @@ import io.ticofab.androidgpxparser.parser.domain.Gpx
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.tan
-import androidx.core.graphics.createBitmap
+import java.time.OffsetDateTime
 
 
 data class LatLng(val lat: Double, val lon: Double)
@@ -164,6 +156,15 @@ fun RideStatItem(
     }
 }
 
+//@RequiresApi(Build.VERSION_CODES.O)
+//fun getLocalTime(time: String): String{
+//    val dateTime = time
+//    val odt = OffsetDateTime.parse(dateTime) // 自动识别 Z 时区
+//    val date = odt.toLocalDate().toString()
+//    return date
+//}
+
+
 @Composable
 fun RideStats(trackData: TrackData) {
     Column(
@@ -176,7 +177,7 @@ fun RideStats(trackData: TrackData) {
         )
 
         RideStatItem(
-            label = "总时间",
+            label = "时间",
             value = "${(trackData.extensions.totalTime / 3600).toInt()}h ${(trackData.extensions.totalTime / 60 % 60).toInt()}m"
         )
 
@@ -186,11 +187,12 @@ fun RideStats(trackData: TrackData) {
         )
 
 //        RideStatItem(
-//            label = "累计下降",
-//            value = "${trackData.extensions.cumulativeDecrease.toInt()} m"
+//            label = "Xi",
+//            value = "${trackData.trackPoints.get(0).time} m"
 //        )
     }
 }
+
 
 @Composable
 fun GPXExtensions(trackDataState: MutableState<TrackData?>, modifier: Modifier = Modifier) {
@@ -288,7 +290,7 @@ fun GpxViewer() {
 
     val assetManager = context.assets
     //    val fileName_1 = "20250622户外骑行.gpx"
-    val fileName_2 = "20250907户外骑行.gpx"
+    val fileName_2 = "20250914户外骑行.gpx"
 
     val trackDataState  = remember { mutableStateOf<TrackData?>(null) }
 
@@ -318,33 +320,6 @@ fun GpxViewer() {
 
 @Composable
 fun CaptureComposable() {
-    val context = LocalContext.current
-    val view = LocalView.current
-
-    Column (
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
-
-        // 需要截取的部分
-        GpxViewer()
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 截图按钮
-        Button(onClick = {
-            val bitmap = ScreenshotUtil.getTransparentBitmapFromView(view)
-//            ScreenshotUtil.saveBitmapToFile(context, bitmap, "compose_screen3")
-            ScreenshotUtil.saveBitmapToGallery(context, bitmap, "compose_screen5")
-        }) {
-            Text("截取整个Compose界面")
-        }
-    }
-}
-
-@Composable
-fun CaptureComposable2() {
     val context = LocalContext.current
     val gpxComposeView = remember { ComposeView(context) }
 

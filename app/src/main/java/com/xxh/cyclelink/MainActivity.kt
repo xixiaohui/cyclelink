@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CyclelinkTheme {
-                CaptureComposable2()
+                CaptureComposable()
             }
         }
     }

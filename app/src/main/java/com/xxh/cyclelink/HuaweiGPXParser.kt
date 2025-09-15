@@ -8,6 +8,11 @@ import javax.xml.parsers.DocumentBuilderFactory
 // -------------------------
 // 数据类定义
 // -------------------------
+
+data class TrackTime(
+    val time: String
+)
+
 data class TrackExtensions(
     val totalTime: Double,
     val cumulativeDecrease: Double,
@@ -24,6 +29,7 @@ data class TrackPoint(
 )
 
 data class TrackData(
+//    val trackTime: TrackTime,
     val extensions: TrackExtensions,
     val trackPoints: List<TrackPoint>
 )
@@ -42,6 +48,12 @@ object HuaweiGPXParser {
         return try {
             val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(gpxFile)
             doc.documentElement.normalize()
+
+            //  取metadata的time
+//            val metadata = doc.getElementsByTagName("metadata") as Element
+//            val trackTime = TrackTime(
+//                time = metadata.getElementsByTagName("time").item(0).textContent.toString()
+//            )
 
             // 取第一个 <trk>
             val trk = doc.getElementsByTagName("trk").item(0) as? Element ?: return null
@@ -63,7 +75,8 @@ object HuaweiGPXParser {
                 val trkpt = trkpts.item(i) as Element
                 val lat = trkpt.getAttribute("lat").toDouble()
                 val lon = trkpt.getAttribute("lon").toDouble()
-                val ele = trkpt.getElementsByTagName("ele").item(0).textContent.toDouble()
+                val eleNode = trkpt.getElementsByTagName("ele").item(0)
+                val ele = eleNode?.textContent?.toDoubleOrNull()?:0.0
                 val time = trkpt.getElementsByTagName("time").item(0).textContent
                 trkptList.add(TrackPoint(lat, lon, ele, time))
             }
@@ -81,6 +94,13 @@ object HuaweiGPXParser {
             val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(inputStream)
             doc.documentElement.normalize()
             // 和 parseGpxFile 一样的解析逻辑
+            //  取metadata的time
+//            val metadata = doc.getElementsByTagName("metadata").item(0) as Element
+//            val trackTime = TrackTime(
+//                time = metadata.getElementsByTagName("time").item(0).textContent
+//            )
+
+
             val trk = doc.getElementsByTagName("trk").item(0) as? Element ?: return null
             val extElem = trk.getElementsByTagName("extensions").item(0) as Element
             val extensions = TrackExtensions(
@@ -97,7 +117,8 @@ object HuaweiGPXParser {
                 val trkpt = trkpts.item(i) as Element
                 val lat = trkpt.getAttribute("lat").toDouble()
                 val lon = trkpt.getAttribute("lon").toDouble()
-                val ele = trkpt.getElementsByTagName("ele").item(0).textContent.toDouble()
+                val eleNode = trkpt.getElementsByTagName("ele").item(0)
+                val ele = eleNode?.textContent?.toDoubleOrNull()?:0.0
                 val time = trkpt.getElementsByTagName("time").item(0).textContent
                 trkptList.add(TrackPoint(lat, lon, ele, time))
             }
@@ -120,20 +141,20 @@ fun main() {
 //    val inputStream = assetManager.open("your_file.gpx") // assets/your_file.gpx
 //    val trackData = GPXParser.parseGpxInputStream(inputStream)
 
-    val gpxFile = File("/path/to/your/file.gpx")
-    val trackData = HuaweiGPXParser.parseGpxFile(gpxFile)
-
-    trackData?.let {
-        println("=== Track Extensions ===")
-        println("Total time: ${it.extensions.totalTime}")
-        println("Cumulative decrease: ${it.extensions.cumulativeDecrease}")
-        println("Cumulative climb: ${it.extensions.cumulativeClimb}")
-        println("Total distance: ${it.extensions.totalDistance}")
-        println("Route type: ${it.extensions.routeType}")
-        println("=== Track Points ===")
-        println("Number of points: ${it.trackPoints.size}")
-        it.trackPoints.forEachIndexed { index, point ->
-            println("${index + 1}: ${point.lat}, ${point.lon}, ${point.ele}, ${point.time}")
-        }
-    } ?: println("解析失败或文件格式不正确")
+//    val gpxFile = File("/path/to/your/file.gpx")
+//    val trackData = HuaweiGPXParser.parseGpxFile(gpxFile)
+//
+//    trackData?.let {
+//        println("=== Track Extensions ===")
+//        println("Total time: ${it.extensions.totalTime}")
+//        println("Cumulative decrease: ${it.extensions.cumulativeDecrease}")
+//        println("Cumulative climb: ${it.extensions.cumulativeClimb}")
+//        println("Total distance: ${it.extensions.totalDistance}")
+//        println("Route type: ${it.extensions.routeType}")
+//        println("=== Track Points ===")
+//        println("Number of points: ${it.trackPoints.size}")
+//        it.trackPoints.forEachIndexed { index, point ->
+//            println("${index + 1}: ${point.lat}, ${point.lon}, ${point.ele}, ${point.time}")
+//        }
+//    } ?: println("解析失败或文件格式不正确")
 }
