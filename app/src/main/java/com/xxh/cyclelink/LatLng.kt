@@ -285,25 +285,24 @@ fun GPXTrackCanvas(gpxPoints: List<LatLng>, modifier: Modifier = Modifier) {
 
 
 @Composable
-fun GpxViewer() {
+fun GpxViewer(fileName:String) {
     val context = LocalContext.current
     val trackPoints = remember { mutableStateListOf<LatLng>() }
 
     val assetManager = context.assets
     //    val fileName_1 = "20250622户外骑行.gpx"
-    val fileName_2 = "20250914户外骑行.gpx"
+//    val fileName_2 = "20250914户外骑行.gpx"
 
     val trackDataState  = remember { mutableStateOf<TrackData?>(null) }
 
     LaunchedEffect(Unit) {
 
-        val inputStream = assetManager.open(fileName_2) // assets/your_file.gpx
+        val inputStream = assetManager.open(fileName) // assets/your_file.gpx
         val data = HuaweiGPXParser.parseGpxInputStream(inputStream)
         trackDataState.value = data
 
         trackPoints.clear()
         trackPoints.addAll(parseGpx(context))
-
 
     }
     if (trackPoints.isNotEmpty()) {
@@ -351,7 +350,7 @@ fun GPXTrackTimeAndNumber(trackDataState: MutableState<TrackData?>) {
 
 
 @Composable
-fun CaptureComposable() {
+fun CaptureComposable(fileName:String) {
     val context = LocalContext.current
     val gpxComposeView = remember { ComposeView(context) }
 
@@ -365,7 +364,7 @@ fun CaptureComposable() {
             factory = {
                 gpxComposeView.apply {
                     setContent {
-                        GpxViewer()
+                        GpxViewer(fileName)
                     }
                 }
             },
@@ -377,7 +376,7 @@ fun CaptureComposable() {
 
         Button(onClick = {
             val bitmap = ScreenshotUtil.getTransparentBitmapFromView(gpxComposeView)
-            ScreenshotUtil.saveBitmapToGallery(context, bitmap, "compose_only_gpx2")
+            ScreenshotUtil.saveBitmapToGallery(context, bitmap, fileName)
         }) {
             Text("只截取 GpxViewer")
         }

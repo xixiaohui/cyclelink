@@ -20,7 +20,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CyclelinkTheme {
-                CaptureComposable()
+//                CaptureComposable()
+
+                AssetFileList()
             }
         }
     }

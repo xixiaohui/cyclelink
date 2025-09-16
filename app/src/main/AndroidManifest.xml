@@ -28,16 +28,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Cyclelink">
-        <meta-data android:name="com.amap.api.v2.apikey" android:value="c2f7d4f876663c6d2a8666b2cd5a4ba1">
-        </meta-data>
-
-        <!-- ✅ APSService 服务注册 -->
-        <service
-            android:name="com.amap.api.location.APSService"
-            android:enabled="true"
-            android:exported="false" />
 
 
+        <activity android:name=".GpxViewerActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
