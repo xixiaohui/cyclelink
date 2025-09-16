@@ -368,8 +368,10 @@ fun CaptureComposable(fileName:String) {
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
                 .fillMaxHeight(0.7f)
+                .background(Color.LightGray)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
