@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 //                CaptureComposable()
 
 //                AssetFileList()
-                GpxFilePickerScreen()
+                GpxFileSelectorScreen()
             }
         }
     }
