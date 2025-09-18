@@ -3,6 +3,8 @@ package com.xxh.cyclelink
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
+import android.util.Log
 
 
 import androidx.compose.foundation.Canvas
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import io.ticofab.androidgpxparser.parser.GPXParser
 import io.ticofab.androidgpxparser.parser.domain.Gpx
+import java.io.File
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.tan
@@ -274,7 +277,7 @@ fun GPXTrackCanvas(gpxPoints: List<LatLng>, modifier: Modifier = Modifier) {
                         color = DarkOrange,
                         start = centeredPoints[i],
                         end = centeredPoints[i + 1],
-                        strokeWidth = 10f
+                        strokeWidth = 17f
                     )
                 }
             }
@@ -284,16 +287,15 @@ fun GPXTrackCanvas(gpxPoints: List<LatLng>, modifier: Modifier = Modifier) {
 }
 
 
+
 @Composable
 fun GpxViewer(fileName:String) {
     val context = LocalContext.current
     val trackPoints = remember { mutableStateListOf<LatLng>() }
 
     val assetManager = context.assets
-    //    val fileName_1 = "20250622户外骑行.gpx"
-//    val fileName_2 = "20250914户外骑行.gpx"
-
     val trackDataState  = remember { mutableStateOf<TrackData?>(null) }
+
 
     LaunchedEffect(Unit) {
 
@@ -319,8 +321,6 @@ fun GpxViewer(fileName:String) {
             //时间 + 圈数
             GPXTrackTimeAndNumber(trackDataState = trackDataState)
         }
-
-
 
     }
 

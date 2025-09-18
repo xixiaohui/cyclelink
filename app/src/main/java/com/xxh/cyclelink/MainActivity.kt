@@ -22,7 +22,8 @@ class MainActivity : ComponentActivity() {
             CyclelinkTheme {
 //                CaptureComposable()
 
-                AssetFileList()
+//                AssetFileList()
+                GpxFilePickerScreen()
             }
         }
     }
