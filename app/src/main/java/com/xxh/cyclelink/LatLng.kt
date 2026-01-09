@@ -39,33 +39,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import io.ticofab.androidgpxparser.parser.GPXParser
-import io.ticofab.androidgpxparser.parser.domain.Gpx
-import java.io.File
+
+
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.tan
-import java.time.OffsetDateTime
+
 
 
 data class LatLng(val lat: Double, val lon: Double)
 
-fun parseGpxFromAssets(context: Context): Gpx? {
-    val parser = GPXParser()
-    val inputStream = context.assets.open("4994735.gpx")
-    return parser.parse(inputStream)
-}
 
-fun extractLatLngList(gpx: Gpx): List<LatLng> {
-    val list = mutableListOf<LatLng>()
-    gpx.tracks.forEach { track ->
-        track.trackSegments.forEach { segment ->
-            segment.trackPoints.forEach { point ->
-                list.add(LatLng(point.latitude, point.longitude))
-            }
-        }
-    }
-    return list
-}
 
 fun parseGpx(context: Context): List<LatLng> {
     val fileName_2 = "20250907户外骑行.gpx"
